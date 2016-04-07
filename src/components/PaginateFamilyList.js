@@ -11,8 +11,8 @@ class FamilyListItem extends React.Component {
     }
 
     let img;
-    if (image && image.url_image) {
-      img = <img src={image.url_image} />;
+    if (image && image.urlImage) {
+      img = <img src={image.urlImage} />;
     }
 
     return (

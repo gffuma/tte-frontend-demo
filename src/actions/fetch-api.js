@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import { camelizeKeys } from 'humps';
 
 const API_URL = 'https://tte.trizero.biz';
 // i love my token <3
@@ -12,5 +13,6 @@ function mergeAuthTokenConfig(config={}) {
 export default function fetchApi(url, additionalConfig = {}) {
   const config = mergeAuthTokenConfig(additionalConfig);
   return fetch(API_URL + url, config)
-    .then(response => response.json());
+    .then(response => response.json())
+    .then(json => camelizeKeys(json))
 };

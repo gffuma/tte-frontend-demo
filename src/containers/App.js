@@ -1,17 +1,16 @@
 import React from 'react'
 import Filter from '../components/Filter';
-import FamilyList from '../components/FamilyList';
+import PaginateFamilyList from '../components/PaginateFamilyList';
 import { connect } from 'react-redux';
 import {
-  setSearchFamiliesFilters,
-  resetSearchFamiliesFilters
-} from '../actions';
-
-function mapToFilters(items) {
-  return items.map(item => {
-    return { value: item.id, name: item.description };
-  });
-}
+  getUtensilsFilters,
+  getGeometriesFilters,
+  getCuttersFilters
+} from '../selectors';
+import {
+  setFilters,
+  resetFilters
+} from '../actions/search-families';
 
 class App extends React.Component {
 
@@ -20,27 +19,38 @@ class App extends React.Component {
   }
 
   render() {
-    const { currentFilters, families, cutters, geometries } = this.props;
+    const {
+      families,
+      currentFilters,
+      utensilsFilters,
+      geometriesFilters,
+      cuttersFilters
+    } = this.props;
 
     return (
       <div>
         <button type="button"
-          onClick={() => this.props.resetSearchFamiliesFilters()}
+          onClick={() => this.props.resetFilters()}
           >Reset Filters!</button>
         <br />
         <br />
 
         <Filter
-          filters={mapToFilters(cutters)}
-          onFilterChange={cutter => this.props.setSearchFamiliesFilters({ cutter })}
-          currentFilter={currentFilters.cutter} />
+          filters={utensilsFilters}
+          onFilterChange={utensil => this.props.setFilters({ utensil })}
+          currentFilter={currentFilters.utensil} />
         <Filter
-          filters={mapToFilters(geometries)}
-          onFilterChange={geometry => this.props.setSearchFamiliesFilters({ geometry })}
+          filters={geometriesFilters}
+          onFilterChange={geometry => this.props.setFilters({ geometry })}
           currentFilter={currentFilters.geometry} />
+        <Filter
+          filters={cuttersFilters}
+          onFilterChange={cutter => this.props.setFilters({ cutter })}
+          currentFilter={currentFilters.cutter} />
 
         <br />
-        <FamilyList families={families} />
+
+        <PaginateFamilyList families={families} />
       </div>
     );
   }
@@ -48,14 +58,15 @@ class App extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    cutters: state.cutters.items,
-    geometries: state.geometries.items,
+    utensilsFilters: getUtensilsFilters(state),
+    geometriesFilters: getGeometriesFilters(state),
+    cuttersFilters: getCuttersFilters(state),
     currentFilters: state.searchFamilies.filters,
     families: state.searchFamilies.families.items,
   };
 }
 
 export default connect(mapStateToProps, {
-  setSearchFamiliesFilters,
-  resetSearchFamiliesFilters,
+  setFilters,
+  resetFilters
 })(App);
