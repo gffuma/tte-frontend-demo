@@ -1,18 +1,20 @@
 import React from 'react'
+import style from '../style.scss';
+import classNames from 'classnames';
 
 class FilterElement extends React.Component {
   render() {
     const { value, name, selected, onChange } = this.props;
     return (
-      <span className="filter-element">
-        {name}
+      <div className={style.filterElement}>
         <input
           type="radio"
           value={value}
           onChange={() => onChange(value)}
           checked={selected}
         />
-      </span>
+        <span className={style.filterElementName}>{name}</span>
+      </div>
     );
   }
 }
@@ -20,10 +22,12 @@ class FilterElement extends React.Component {
 export default class Filter extends React.Component {
 
   render() {
-    const { filters, currentFilter, onFilterChange } = this.props;
+    const { filterName, filters, currentFilter, onFilterChange } = this.props;
+    const loading = false;
 
     return (
-      <div>
+      <div className={classNames(style.filter, {[style.loading]: loading})}>
+        <div className={style.filterName}>{filterName}</div>
         {filters.map(filter => (
           <FilterElement
             key={filter.value}

@@ -29,21 +29,25 @@ class App extends React.Component {
 
     return (
       <div>
-        <button type="button"
-          onClick={() => this.props.resetFilters()}
-          >Reset Filters!</button>
+
+        <button
+          type="button"
+          onClick={() => this.props.resetFilters()}>Reset Filters!</button>
         <br />
         <br />
 
         <Filter
+          filterName="Utensile"
           filters={utensilsFilters}
           onFilterChange={utensil => this.props.setFilters({ utensil })}
           currentFilter={currentFilters.utensil} />
         <Filter
+          filterName="Geometria"
           filters={geometriesFilters}
           onFilterChange={geometry => this.props.setFilters({ geometry })}
           currentFilter={currentFilters.geometry} />
         <Filter
+          filterName="Tagliente"
           filters={cuttersFilters}
           onFilterChange={cutter => this.props.setFilters({ cutter })}
           currentFilter={currentFilters.cutter} />
