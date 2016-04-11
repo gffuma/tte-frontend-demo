@@ -8,6 +8,7 @@ import {
   SEARCH_FAMILIES_SUCCESS,
   SEARCH_FAMILIES_FAILURE,
   SET_SEARCH_FAMILIES_PAGE,
+  RESET_SEARCH_FAMILIES_PAGE,
   SEARCH_FAMILIES_UTENSILS_REQUEST,
   SEARCH_FAMILIES_UTENSILS_SUCCESS,
   SEARCH_FAMILIES_UTENSILS_FAILURE,
@@ -41,17 +42,46 @@ const defaultFamiliesState = {
   items: [],
   pagination: {
     currentPage: 1,
-    perPage: 500,
+    perPage: 10,
   }
 };
-// TODO: Handle loading and check for a valid request
 function families(state = defaultFamiliesState, { type, items, pagination, page }) {
+
+  // Valid pagination
+  if (type === SEARCH_FAMILIES_SUCCESS || type === SEARCH_FAMILIES_FAILURE ) {
+    if (! isEqualObjPick(state.pagination, pagination, ['currentPage', 'perPage'])) {
+      return state;
+    }
+  }
+
+  if (type === SEARCH_FAMILIES_REQUEST) {
+    return {...state, loading: true };
+  }
+
   if (type === SEARCH_FAMILIES_SUCCESS) {
-    return { ...state, items, pagination };
+    return { ...state, items, pagination, loading: false };
+  }
+
+  if (type === SEARCH_FAMILIES_FAILURE) {
+    return {...state, loading: false };
   }
 
   if (type === SET_SEARCH_FAMILIES_PAGE) {
-    return { ...state, pagination: { ...state.pagination, currentPage: page, count: null } };
+    return { ...state, pagination: {
+      ...state.pagination,
+      currentPage: page,
+      count: null,
+    }};
+  }
+
+  if (type === RESET_SEARCH_FAMILIES_PAGE) {
+    return { ...state, pagination: {
+      ...state.pagination,
+      currentPage: 1,
+      count: null,
+      total: null,
+      totalPages: null,
+    }};
   }
 
   return state;
@@ -97,6 +127,13 @@ const cutters = stupidListOfStuff([
 function validFilters(reducer) {
   return (state, action) => {
     switch (action.type) {
+
+      case SEARCH_FAMILIES_SUCCESS:
+      case SEARCH_FAMILIES_FAILURE:
+        if (isEqualObjPick(state.filters, action.filters)) {
+          return reducer(state, action);
+        }
+        return state;
 
       case SEARCH_FAMILIES_GEOMETRIES_SUCCESS:
       case SEARCH_FAMILIES_GEOMETRIES_FAILURE:

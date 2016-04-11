@@ -8,6 +8,7 @@ import {
   SEARCH_FAMILIES_SUCCESS,
   SEARCH_FAMILIES_FAILURE,
   SET_SEARCH_FAMILIES_PAGE,
+  RESET_SEARCH_FAMILIES_PAGE,
   SEARCH_FAMILIES_UTENSILS_REQUEST,
   SEARCH_FAMILIES_UTENSILS_SUCCESS,
   SEARCH_FAMILIES_UTENSILS_FAILURE,
@@ -26,6 +27,11 @@ function dispatchByDiffInFilters(diffInFilters, dispatch) {
     }
     if (diffInFilters(['utensil', 'geometry'])) {
       dispatch(loadCutters());
+    }
+    if (diffInFilters()) {
+      // Reload families and reset pagination
+      dispatch({ type: RESET_SEARCH_FAMILIES_PAGE });
+      dispatch(loadFamilies());
     }
 }
 
@@ -53,26 +59,48 @@ export function resetFilters() {
   };
 };
 
-export function setPage(page) {
+export function setPage(newPage) {
   return (dispatch, getState) => {
-    dispatch({ type: SET_SEARCH_FAMILIES_PAGE, page });
-    dispatch(loadFamilies());
+    const page = Number(newPage);
+    if (page) {
+      dispatch({ type: SET_SEARCH_FAMILIES_PAGE, page });
+      dispatch(loadFamilies());
+    }
   };
 };
 
 export function loadFamilies() {
   return (dispatch, getState) => {
-    const { cutter, geometry, utensil } = getFilters(getState());
-    const { currentPage, perPage } = getState().searchFamilies.families.pagination;
+    const filters = getState().searchFamilies.filters;
+    const { cutter, geometry, utensil } = mapObjForQs(filters);
+    const pagination = getState().searchFamilies.families.pagination;
+    const { currentPage, perPage } = pagination;
 
-    dispatch({ type: SEARCH_FAMILIES_REQUEST });
+    dispatch({ type: SEARCH_FAMILIES_REQUEST, filters });
 
-    fetchApi(`/families?cutter=${cutter}&geometry=${geometry}&utensil=${utensil}&page=${currentPage}&per_page=${perPage}`)
-      .then(json => dispatch({
-        type: SEARCH_FAMILIES_SUCCESS,
-        items: json.data,
-        pagination: omit(json.meta.pagination, ['links']),
-      }));
+    fetchApi(getState(), `/families?cutter=${cutter}&geometry=${geometry}&utensil=${utensil}&page=${currentPage}&per_page=${perPage}`)
+    .then(
+      json => {
+        dispatch({
+          type: SEARCH_FAMILIES_SUCCESS,
+          items: json.data,
+          pagination: omit(json.meta.pagination, ['links']),
+          filters,
+        });
+        // Check if page is valid
+        const { families } = getState().searchFamilies;
+        if (families.pagination.currentPage > families.pagination.totalPages) {
+          dispatch({ type: RESET_SEARCH_FAMILIES_PAGE });
+          dispatch(loadFamilies());
+        }
+      },
+      error => dispatch({
+        type: SEARCH_FAMILIES_GEOMETRIES_FAILURE,
+        error,
+        pagination,
+        filters,
+      })
+    );
   };
 };
 

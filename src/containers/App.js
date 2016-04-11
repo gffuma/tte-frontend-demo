@@ -9,7 +9,8 @@ import {
 } from '../selectors';
 import {
   setFilters,
-  resetFilters
+  resetFilters,
+  setPage
 } from '../actions/search-families';
 
 class App extends React.Component {
@@ -21,13 +22,18 @@ class App extends React.Component {
   render() {
     const {
       families,
+      familiesLoading,
+      pagination,
       currentFilters,
       utensilsFilters,
       utensilsLoading,
       geometriesFilters,
       geometriesLoading,
       cuttersFilters,
-      cuttersLoading
+      cuttersLoading,
+      setFilters,
+      resetFilters,
+      setPage
     } = this.props;
 
     return (
@@ -35,46 +41,52 @@ class App extends React.Component {
 
         <button
           type="button"
-          onClick={() => this.props.resetFilters()}>Reset Filters!</button>
+          onClick={resetFilters}>Reset Filters!</button>
         <br />
         <br />
 
         {(() => {
-          if (this.props.utensilsLoading) {
+          if (utensilsLoading) {
             return <div>Loading...</div>;
           }
         })()}
         <Filter
           filterName="Utensile"
           filters={utensilsFilters}
-          onFilterChange={utensil => this.props.setFilters({ utensil })}
+          onFilterChange={utensil => setFilters({ utensil })}
           currentFilter={currentFilters.utensil} />
 
         {(() => {
-          if (this.props.geometriesLoading) {
+          if (geometriesLoading) {
             return <div>Loading...</div>;
           }
         })()}
         <Filter
           filterName="Geometria"
           filters={geometriesFilters}
-          onFilterChange={geometry => this.props.setFilters({ geometry })}
+          onFilterChange={geometry => setFilters({ geometry })}
           currentFilter={currentFilters.geometry} />
 
         {(() => {
-          if (this.props.cuttersLoading) {
+          if (cuttersLoading) {
             return <div>Loading...</div>;
           }
         })()}
         <Filter
           filterName="Tagliente"
           filters={cuttersFilters}
-          onFilterChange={cutter => this.props.setFilters({ cutter })}
+          onFilterChange={cutter => setFilters({ cutter })}
           currentFilter={currentFilters.cutter} />
 
         <br />
+        <hr />
 
-        <PaginateFamilyList families={families} />
+        {(() => {
+          if (familiesLoading) {
+            return <div><b>Loading...</b></div>;
+          }
+        })()}
+        <PaginateFamilyList families={families} pagination={pagination} onPageChange={setPage} />
       </div>
     );
   }
@@ -90,10 +102,13 @@ function mapStateToProps(state) {
     cuttersLoading: state.searchFamilies.cutters.loading,
     currentFilters: state.searchFamilies.filters,
     families: state.searchFamilies.families.items,
+    familiesLoading: state.searchFamilies.families.loading,
+    pagination: state.searchFamilies.families.pagination,
   };
 }
 
 export default connect(mapStateToProps, {
   setFilters,
-  resetFilters
+  resetFilters,
+  setPage,
 })(App);

@@ -1,4 +1,5 @@
 import React from 'react';
+import { range } from 'lodash';
 
 class FamilyListItem extends React.Component {
 
@@ -24,12 +25,41 @@ class FamilyListItem extends React.Component {
   }
 }
 
+class FamilyPaginator extends React.Component {
+
+  render() {
+    const {
+      total,
+      count,
+      currentPage,
+      perPage,
+      totalPages,
+      onPageChange
+    } = this.props;
+    return (
+      <p>
+        Showig {count ? count : '...'} shitty things of {total} page size {perPage}
+        <select value={currentPage} onChange={(e) => onPageChange(e.target.value)}>
+          {range(1, totalPages + 1).map(page => (
+            <option key={page} value={page}>{page}</option>
+          ))}
+        </select>
+      </p>
+    );
+  }
+}
+
 export default class FamilyList extends React.Component {
 
   render() {
-    const { families } = this.props;
+    const { families, pagination, onPageChange } = this.props;
     return (
       <div>
+        {(() => {
+          if (pagination.total && pagination.totalPages) {
+            return <FamilyPaginator {...pagination} onPageChange={onPageChange} />;
+          }
+        })()}
         {families.map(family => (
           <FamilyListItem {...family} key={family.id} />
         ))}

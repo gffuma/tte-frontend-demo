@@ -10,7 +10,7 @@ import {
   loadCutters,
   loadGeometries,
   setFilters,
-  loadSearchFamilies
+  loadFamilies
 } from './actions/search-families';
 
 const store = configureStore();
@@ -18,14 +18,6 @@ const store = configureStore();
 // API settings...
 store.dispatch(setApiToken('MTQ1ODMxOTU2OA==.8LfkVjFEq4NAtLImtAZfjruCAPaajyU6o6lHw1mUnRkJGEMzUk2hRnWt5uKxP1l8UwFgkFrL1X3DfMFKkav'));
 //store.dispatch(setApiLocale('it'));
-//
-
-//store.dispatch(setFilters({ utensil: 2 }));
-
-//fetchApi(store.getState(), '/me?giova=figo')
-//.catch((e) => {
-  //console.log('Got', e);
-//});
 
 // Loading initial data...
 store.dispatch(loadUtensils());
