@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 import { pick, keys } from 'lodash';
+import { isEqualObjPick } from '../utils';
 import {
   SET_SEARCH_FAMILIES_FILTERS,
   RESET_SEARCH_FAMILIES_FILTERS,
@@ -60,25 +61,23 @@ function stupidListOfStuff(types) {
   const defaultState = {
     loading: false,
     items: [],
-    error: null,
   };
   const [requestType, successType, failureType] = types;
-  return (state = defaultState, { type, items, error }) => {
+  return (state = defaultState, { type, items }) => {
     if (type === requestType) {
       return {...state, loading: true };
     }
     if (type === successType) {
-      return {...state, items, loading: false, error: null };
+      return {...state, items, loading: false };
     }
     if (type === failureType) {
-      return {...state, loading: false, error };
+      return {...state, loading: false };
     }
 
     return state;
   };
 }
 
-// TODO: Handle loading and check valid
 const utensils = stupidListOfStuff([
   SEARCH_FAMILIES_UTENSILS_REQUEST,
   SEARCH_FAMILIES_UTENSILS_SUCCESS,
@@ -95,10 +94,34 @@ const cutters = stupidListOfStuff([
   SEARCH_FAMILIES_CUTTERS_FAILURE
 ]);
 
-export default combineReducers({
+function validFilters(reducer) {
+  return (state, action) => {
+    switch (action.type) {
+
+      case SEARCH_FAMILIES_GEOMETRIES_SUCCESS:
+      case SEARCH_FAMILIES_GEOMETRIES_FAILURE:
+        if (isEqualObjPick(state.filters, action.filters, ['utensil'])) {
+          return reducer(state, action);
+        }
+        return state;
+
+      case SEARCH_FAMILIES_CUTTERS_SUCCESS:
+      case SEARCH_FAMILIES_CUTTERS_FAILURE:
+        if (isEqualObjPick(state.filters, action.filters, ['utensil', 'geometry'])) {
+          return reducer(state, action);
+        }
+        return state;
+
+      default:
+        return reducer(state, action);
+    }
+  };
+}
+
+export default validFilters(combineReducers({
   filters,
   families,
   utensils,
   geometries,
   cutters
-});
+}));

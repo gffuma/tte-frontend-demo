@@ -1,4 +1,6 @@
-import fetchApi from './fetch-api';
+import { fetchApi } from './api';
+import { omit, mapValues, findIndex } from 'lodash';
+import { mapObjForQs, isEqualObjPick } from '../utils';
 import {
   SET_SEARCH_FAMILIES_FILTERS,
   RESET_SEARCH_FAMILIES_FILTERS,
@@ -16,27 +18,38 @@ import {
   SEARCH_FAMILIES_CUTTERS_SUCCESS,
   SEARCH_FAMILIES_CUTTERS_FAILURE
 } from '../constants/ActionTypes'
-import { trim, mapValues, omit } from 'lodash';
+
+// Re-calculate filter based query based on filters changes
+function dispatchByDiffInFilters(diffInFilters, dispatch) {
+    if (diffInFilters(['utensil'])) {
+      dispatch(loadGeometries());
+    }
+    if (diffInFilters(['utensil', 'geometry'])) {
+      dispatch(loadCutters());
+    }
+}
 
 export function setFilters(filters) {
   return (dispatch, getState) => {
+    // Calculate difference in filters
+    const prevFilters = getState().searchFamilies.filters;
+    const nextFilters = { ...prevFilters, ...filters };
+    const diffInFilters = (keys = null) => !isEqualObjPick(prevFilters, nextFilters, keys);
+
     dispatch({ type: SET_SEARCH_FAMILIES_FILTERS, filters });
-    dispatch(loadFamilies());
-    // TODO: Check what to reload
-    dispatch(loadUtensils());
-    dispatch(loadGeometries());
-    dispatch(loadCutters());
+    dispatchByDiffInFilters(diffInFilters, dispatch);
   };
 };
 
 export function resetFilters() {
   return (dispatch, getState) => {
+    // Calculate difference in filters
+    const prevFilters = getState().searchFamilies.filters;
+    const nextFilters = mapValues(prevFilters, filter => null);
+    const diffInFilters = (keys = null) => !isEqualObjPick(prevFilters, nextFilters, keys);
+
     dispatch({ type: RESET_SEARCH_FAMILIES_FILTERS });
-    dispatch(loadFamilies());
-    // TODO: Check what to reload
-    dispatch(loadUtensils());
-    dispatch(loadGeometries());
-    dispatch(loadCutters());
+    dispatchByDiffInFilters(diffInFilters, dispatch);
   };
 };
 
@@ -46,11 +59,6 @@ export function setPage(page) {
     dispatch(loadFamilies());
   };
 };
-
-function getFilters(state) {
-  const filters = state.searchFamilies.filters;
-  return mapValues(filters, filter => trim(filter));
-}
 
 export function loadFamilies() {
   return (dispatch, getState) => {
@@ -68,30 +76,60 @@ export function loadFamilies() {
   };
 };
 
+function resetInvalidFilter(state, dispatch, filterKey, entityKey) {
+  const filterValue = state.searchFamilies.filters[filterKey];
+  if (filterValue !== null) {
+    const filterItems = state.searchFamilies[entityKey].items;
+    // Invalid filter, set it to null
+    if (findIndex(filterItems, ['id', filterValue]) === -1) {
+      dispatch(setFilters({ [filterKey]: null }));
+    }
+  }
+}
+
 export function loadUtensils() {
   return (dispatch, getState) => {
     dispatch({ type: SEARCH_FAMILIES_UTENSILS_REQUEST });
-    fetchApi(`/families/utensils`)
-      .then(json => dispatch({ type: SEARCH_FAMILIES_UTENSILS_SUCCESS, items: json.data }));
+    fetchApi(getState(), `/families/utensils`)
+    .then(
+      json => {
+        dispatch({ type: SEARCH_FAMILIES_UTENSILS_SUCCESS, items: json.data })
+      },
+      error => dispatch({ type: SEARCH_FAMILIES_UTENSILS_FAILURE, error })
+     );
   };
 };
 
 export function loadGeometries() {
   return (dispatch, getState) => {
-    const { utensil } = getFilters(getState());
+    const filters = getState().searchFamilies.filters;
+    const { utensil } = mapObjForQs(filters);
 
-    dispatch({ type: SEARCH_FAMILIES_GEOMETRIES_REQUEST });
-    fetchApi(`/families/geometries?utensil=${utensil}`)
-      .then(json => dispatch({ type: SEARCH_FAMILIES_GEOMETRIES_SUCCESS, items: json.data }));
+    dispatch({ type: SEARCH_FAMILIES_GEOMETRIES_REQUEST, filters });
+    fetchApi(getState(), `/families/geometries?utensil=${utensil}`)
+    .then(
+      json => {
+        dispatch({ type: SEARCH_FAMILIES_GEOMETRIES_SUCCESS, items: json.data, filters });
+        resetInvalidFilter(getState(), dispatch, 'geometry', 'geometries');
+      },
+      error => dispatch({ type: SEARCH_FAMILIES_GEOMETRIES_FAILURE, error, filters })
+    );
   };
 };
 
 export function loadCutters() {
   return (dispatch, getState) => {
-    const { utensil, geometry } = getFilters(getState());
+    const filters = getState().searchFamilies.filters;
+    const { utensil, geometry } = mapObjForQs(filters);
 
-    dispatch({ type: SEARCH_FAMILIES_CUTTERS_REQUEST });
-    fetchApi(`/families/cutters?utensil=${utensil}&geometry=${geometry}`)
-      .then(json => dispatch({ type: SEARCH_FAMILIES_CUTTERS_SUCCESS, items: json.data }));
+    dispatch({ type: SEARCH_FAMILIES_CUTTERS_REQUEST, filters });
+    fetchApi(getState(), `/families/cutters?utensil=${utensil}&geometry=${geometry}`)
+    .then(
+      json => {
+        dispatch({ type: SEARCH_FAMILIES_CUTTERS_SUCCESS, items: json.data, filters });
+        resetInvalidFilter(getState(), dispatch, 'cutter', 'cutters');
+      },
+      error => dispatch({ type: SEARCH_FAMILIES_CUTTERS_FAILURE, error, filters })
+    );
   };
 };

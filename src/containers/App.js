@@ -23,8 +23,11 @@ class App extends React.Component {
       families,
       currentFilters,
       utensilsFilters,
+      utensilsLoading,
       geometriesFilters,
-      cuttersFilters
+      geometriesLoading,
+      cuttersFilters,
+      cuttersLoading
     } = this.props;
 
     return (
@@ -36,16 +39,33 @@ class App extends React.Component {
         <br />
         <br />
 
+        {(() => {
+          if (this.props.utensilsLoading) {
+            return <div>Loading...</div>;
+          }
+        })()}
         <Filter
           filterName="Utensile"
           filters={utensilsFilters}
           onFilterChange={utensil => this.props.setFilters({ utensil })}
           currentFilter={currentFilters.utensil} />
+
+        {(() => {
+          if (this.props.geometriesLoading) {
+            return <div>Loading...</div>;
+          }
+        })()}
         <Filter
           filterName="Geometria"
           filters={geometriesFilters}
           onFilterChange={geometry => this.props.setFilters({ geometry })}
           currentFilter={currentFilters.geometry} />
+
+        {(() => {
+          if (this.props.cuttersLoading) {
+            return <div>Loading...</div>;
+          }
+        })()}
         <Filter
           filterName="Tagliente"
           filters={cuttersFilters}
@@ -63,8 +83,11 @@ class App extends React.Component {
 function mapStateToProps(state) {
   return {
     utensilsFilters: getUtensilsFilters(state),
+    utensilsLoading: state.searchFamilies.utensils.loading,
     geometriesFilters: getGeometriesFilters(state),
+    geometriesLoading: state.searchFamilies.geometries.loading,
     cuttersFilters: getCuttersFilters(state),
+    cuttersLoading: state.searchFamilies.cutters.loading,
     currentFilters: state.searchFamilies.filters,
     families: state.searchFamilies.families.items,
   };
