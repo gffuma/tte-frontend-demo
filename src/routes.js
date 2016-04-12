@@ -14,6 +14,7 @@ import {
 export default (store) => (
   <Route path="/" component={App}>
     <IndexRoute component={SearchPage} onEnter={(nextState) => {
+      store.dispatch(loadCutters());
       store.dispatch(loadUtensils());
       store.dispatch(loadGeometries());
       store.dispatch(loadCutters());

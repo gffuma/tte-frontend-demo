@@ -1,5 +1,5 @@
 import { fetchApi } from './api';
-import { omit, mapValues, findIndex } from 'lodash';
+import { omit, mapValues, findIndex, keyBy, keys, parseInt } from 'lodash';
 import { mapObjForQs, isEqualObjPick } from '../utils';
 import {
   SET_SEARCH_FAMILIES_FILTERS,
@@ -81,15 +81,18 @@ export function loadFamilies() {
     fetchApi(getState(), `/families?cutter=${cutter}&geometry=${geometry}&utensil=${utensil}&page=${currentPage}&per_page=${perPage}`)
     .then(
       json => {
+        const families = keyBy(json.data, 'id');
+        const ids = keys(families).map(parseInt);
         dispatch({
           type: SEARCH_FAMILIES_SUCCESS,
-          items: json.data,
           pagination: omit(json.meta.pagination, ['links']),
           filters,
+          ids,
+          entities: { families },
         });
         // Check if page is valid
-        const { families } = getState().searchFamilies;
-        if (families.pagination.currentPage > families.pagination.totalPages) {
+        const { pagination } = getState().searchFamilies.families;
+        if (pagination.currentPage > pagination.totalPages) {
           dispatch({ type: RESET_SEARCH_FAMILIES_PAGE });
           dispatch(loadFamilies());
         }
@@ -121,7 +124,9 @@ export function loadUtensils() {
     fetchApi(getState(), `/families/utensils`)
     .then(
       json => {
-        dispatch({ type: SEARCH_FAMILIES_UTENSILS_SUCCESS, items: json.data })
+        const utensils = keyBy(json.data, 'id');
+        const ids = keys(utensils).map(parseInt);
+        dispatch({ type: SEARCH_FAMILIES_UTENSILS_SUCCESS, ids, entities: { utensils } })
       },
       error => dispatch({ type: SEARCH_FAMILIES_UTENSILS_FAILURE, error })
      );
@@ -137,7 +142,9 @@ export function loadGeometries() {
     fetchApi(getState(), `/families/geometries?utensil=${utensil}`)
     .then(
       json => {
-        dispatch({ type: SEARCH_FAMILIES_GEOMETRIES_SUCCESS, items: json.data, filters });
+        const geometries = keyBy(json.data, 'id');
+        const ids = keys(geometries).map(parseInt);
+        dispatch({ type: SEARCH_FAMILIES_GEOMETRIES_SUCCESS, ids, filters, entities: { geometries } });
         resetInvalidFilter(getState(), dispatch, 'geometry', 'geometries');
       },
       error => dispatch({ type: SEARCH_FAMILIES_GEOMETRIES_FAILURE, error, filters })
@@ -154,7 +161,9 @@ export function loadCutters() {
     fetchApi(getState(), `/families/cutters?utensil=${utensil}&geometry=${geometry}`)
     .then(
       json => {
-        dispatch({ type: SEARCH_FAMILIES_CUTTERS_SUCCESS, items: json.data, filters });
+        const cutters = keyBy(json.data, 'id');
+        const ids = keys(cutters).map(parseInt);
+        dispatch({ type: SEARCH_FAMILIES_CUTTERS_SUCCESS, ids, filters, entities: { cutters } });
         resetInvalidFilter(getState(), dispatch, 'cutter', 'cutters');
       },
       error => dispatch({ type: SEARCH_FAMILIES_CUTTERS_FAILURE, error, filters })

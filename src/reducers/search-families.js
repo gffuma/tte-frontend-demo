@@ -39,13 +39,14 @@ function filters(state = defaultFiltersState, action) {
 
 const defaultFamiliesState = {
   loading: false,
-  items: [],
+  ids: [],
   pagination: {
     currentPage: 1,
     perPage: 10,
   }
 };
-function families(state = defaultFamiliesState, { type, items, pagination, page }) {
+function families(state = defaultFamiliesState, action) {
+  const { type, ids, pagination, page } = action;
 
   // Valid pagination
   if (type === SEARCH_FAMILIES_SUCCESS || type === SEARCH_FAMILIES_FAILURE ) {
@@ -59,7 +60,7 @@ function families(state = defaultFamiliesState, { type, items, pagination, page 
   }
 
   if (type === SEARCH_FAMILIES_SUCCESS) {
-    return { ...state, items, pagination, loading: false };
+    return { ...state, ids, pagination, loading: false };
   }
 
   if (type === SEARCH_FAMILIES_FAILURE) {
@@ -90,15 +91,15 @@ function families(state = defaultFamiliesState, { type, items, pagination, page 
 function stupidListOfStuff(types) {
   const defaultState = {
     loading: false,
-    items: [],
+    ids: [],
   };
   const [requestType, successType, failureType] = types;
-  return (state = defaultState, { type, items }) => {
+  return (state = defaultState, { type, ids }) => {
     if (type === requestType) {
       return {...state, loading: true };
     }
     if (type === successType) {
-      return {...state, items, loading: false };
+      return {...state, ids, loading: false };
     }
     if (type === failureType) {
       return {...state, loading: false };

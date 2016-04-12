@@ -24,6 +24,19 @@ let mySuperAwesomeStateShape = {
     2: {
     }
   },
+  articles: {
+    1: {
+    },
+    2: {
+    }
+  },
+
+  articlesByFamily: {
+    1: {
+      loading: false,
+      ids: []
+    }
+  },
 
   searchFamilies: {
     filters: {
@@ -34,20 +47,20 @@ let mySuperAwesomeStateShape = {
 
     utensils: {
       loading: false,
-      items: [],
+      ids: [],
     },
     geometries: {
       loading: false,
-      items: [],
+      ids: [],
     },
     cutters: {
       loading: false,
-      items: [],
+      ids: [],
     },
 
     families: {
       loading: false,
-      items: [],
+      ids: [],
       pagination: {
         total: 29,
         count: 10,

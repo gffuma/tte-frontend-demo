@@ -5,8 +5,9 @@ import { connect } from 'react-redux';
 import {
   getUtensilsFilters,
   getGeometriesFilters,
-  getCuttersFilters
-} from '../selectors';
+  getCuttersFilters,
+  getFamilies
+} from '../selectors/search-families';
 import {
   setFilters,
   resetFilters,
@@ -96,7 +97,7 @@ function mapStateToProps(state) {
     cuttersFilters: getCuttersFilters(state),
     cuttersLoading: state.searchFamilies.cutters.loading,
     currentFilters: state.searchFamilies.filters,
-    families: state.searchFamilies.families.items,
+    families: getFamilies(state),
     familiesLoading: state.searchFamilies.families.loading,
     pagination: state.searchFamilies.families.pagination,
   };
